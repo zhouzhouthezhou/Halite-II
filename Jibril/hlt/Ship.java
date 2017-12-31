@@ -3,13 +3,11 @@ package hlt;
 public class Ship extends Entity {
 
     public enum DockingStatus { Undocked, Docking, Docked, Undocking }
-    public enum Role {Worker, Soldier, None}
 
     private final DockingStatus dockingStatus;
     private final int dockedPlanet;
     private final int dockingProgress;
     private final int weaponCooldown;
-    private Role role;
 
     public Ship(final int owner, final int id, final double xPos, final double yPos,
                 final int health, final DockingStatus dockingStatus, final int dockedPlanet,
@@ -21,7 +19,6 @@ public class Ship extends Entity {
         this.dockedPlanet = dockedPlanet;
         this.dockingProgress = dockingProgress;
         this.weaponCooldown = weaponCooldown;
-        this.role = Role.None;
     }
 
     public int getWeaponCooldown() {
@@ -38,14 +35,6 @@ public class Ship extends Entity {
 
     public int getDockedPlanet() {
         return dockedPlanet;
-    }
-    
-    public Role getRole() {
-    	return role;
-    }
-    
-    public void setRole(Role role) {
-    	this.role = role;
     }
 
     public boolean canDock(final Planet planet) {
