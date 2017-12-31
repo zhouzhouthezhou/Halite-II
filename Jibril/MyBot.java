@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 
 @SuppressWarnings("null")
 public class MyBot {
-
+	//test
 	public static Networking networking = new Networking();
 	public static GameMap gameMap = networking.initialize("Jibril_v0.7");
 	public static ArrayList<Move> moveList = new ArrayList<>();
