@@ -13,7 +13,7 @@ public class MyBot {
 	private static boolean isFirstTurn = true;
 
 	private static ArrayList<Integer> workers = new ArrayList<>();
-	private static int workerNum = 2;
+	private static int workerNum = 4;
 	private static int workerCount = 0;
 	
 	private static int soldierNum = 1;
@@ -79,6 +79,7 @@ public class MyBot {
 					if(gameMap.getShip(gameMap.getMyPlayerId(), i).canDock(targetPlanet)) {
 						moveList.add(new DockMove(gameMap.getShip(gameMap.getMyPlayerId(), i), targetPlanet));
 					} else {
+//						final ThrustMove navigate = Astar.navigate(gameMap.getShip(gameMap.getMyPlayerId(),  i), targetPlanet, gameMap);
 						final ThrustMove navigate = Navigation.navigateShipToDock(gameMap, gameMap.getShip(gameMap.getMyPlayerId(), i), targetPlanet, Constants.MAX_SPEED);
 						if (navigate != null) {
 							moveList.add(navigate);
@@ -222,9 +223,10 @@ public class MyBot {
 				// ATTACK
 				Log.log("Scooting");
 				Ship targetShip = gameMap.getShip(targetPlanet.getOwner(), targetPlanet.getDockedShips().get(0));
-				final ThrustMove scoot = Navigation.navigateShipTowardsTarget(gameMap, ship,
-						new Position(targetShip.getXPos(), targetShip.getYPos()), Constants.MAX_SPEED, true,
-						Constants.MAX_NAVIGATION_CORRECTIONS, Math.PI / 180.0);
+				final ThrustMove scoot = Astar.navigate(ship, targetShip, gameMap);
+//				final ThrustMove scoot = Navigation.navigateShipTowardsTarget(gameMap, ship,
+//						new Position(targetShip.getXPos(), targetShip.getYPos()), Constants.MAX_SPEED, true,
+//						Constants.MAX_NAVIGATION_CORRECTIONS, Math.PI / 180.0);
 				if (scoot != null) {
 					moveList.add(scoot);
 				}
@@ -234,6 +236,7 @@ public class MyBot {
 			}
 		} else {
 			// Default travel stuff
+//			final ThrustMove navigate = Astar.navigate(ship, targetPlanet, gameMap);
 			final ThrustMove navigate = Navigation.navigateShipToDock(gameMap, ship, targetPlanet, Constants.MAX_SPEED);
 			if (navigate != null) {
 				moveList.add(navigate);
@@ -293,6 +296,7 @@ public class MyBot {
 		Ship temp = finalShipData.iterator().next().getValue();
 		
 		Log.log("Attacking Ship ID" + temp.getId());
+//		final ThrustMove navigate = Astar.navigate(ship, temp, gameMap);
 		final ThrustMove navigate = Navigation.navigateShipToDock(gameMap, ship, temp, Constants.MAX_SPEED);
 		if (navigate != null) {
 			moveList.add(navigate);
