@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 public class MyBot {
 	//test
 	public static Networking networking = new Networking();
-	public static GameMap gameMap = networking.initialize("Jibril_v0.7");
+	public static GameMap gameMap = networking.initialize("Jibril_v0.9");
 	public static ArrayList<Move> moveList = new ArrayList<>();
 	
 	private static boolean isFirstTurn = true;
