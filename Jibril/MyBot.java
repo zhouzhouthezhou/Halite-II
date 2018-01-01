@@ -27,15 +27,21 @@ public class MyBot {
 	private static int defendNum = 1;
 	private static int defendCount = 0;
 
-	private static int lastAssignedShip;
+	private static int lastAssignedShip = 0;
 	
 	public static void main(final String args[]) {
+		
+		boolean group = false;
+		
+		if(gameMap.getAllPlayers().size() > 2)
+			group = false;
+		
 		//Start game
 		for (;;) {
 			moveList.clear();
 			networking.updateMap(gameMap);
 			
-			if(isFirstTurn) {
+			if(isFirstTurn && !group) {
 				boolean firstShip = true;
 				for (Ship ship : gameMap.getMyPlayer().getShips().values()) {
 					Log.log("********First Turn**********");
@@ -91,46 +97,53 @@ public class MyBot {
 				
 			}else {
 				Log.log("********New Ship**********");
-				turn();
+				turn(group);
 			}
 			Networking.sendMoves(moveList);
 		}
 	}
 
-	public static void turn() {
+	public static void turn(boolean group) {
 		
-		for (Ship ship: gameMap.getMyPlayer().getShips().values()) {
-			if(ship.getId() > lastAssignedShip) {
-				Log.log("Ship ID" + ship.getId() + " has not been assigned a role. Attempting role desagnation");
-				assignRole(ship);
-				lastAssignedShip = ship.getId();
+		if(group) {
+			for (Ship ship: gameMap.getMyPlayer().getShips().values()) {
+				worker(ship, group);
 			}
-		}
-		
-		for(int id: workers) {
-			try {
-				Log.log("Itterating Worker: ID" + id);
-				worker(gameMap.getShip(gameMap.getMyPlayerId(), id));
-			}catch(NullPointerException npe) {
-				Log.log("Ship ID" + id + " is dead");
+		}else {
+			
+			for (Ship ship: gameMap.getMyPlayer().getShips().values()) {
+				if(ship.getId() > lastAssignedShip) {
+					Log.log("Ship ID" + ship.getId() + " has not been assigned a role. Attempting role desagnation");
+					assignRole(ship);
+					lastAssignedShip = ship.getId();
+				}
 			}
-		}
-		
-		for(int id: attackers) {
-			try {
-				Log.log("Itterating Attacker: ID" + id);
-				attack(gameMap.getShip(gameMap.getMyPlayerId(), id));
-			}catch(NullPointerException npe) {
-				Log.log("Ship ID" + id + " is dead");
+			
+			for(int id: workers) {
+				try {
+					Log.log("Itterating Worker: ID" + id);
+					worker(gameMap.getShip(gameMap.getMyPlayerId(), id), group);
+				}catch(NullPointerException npe) {
+					Log.log("Ship ID" + id + " is dead");
+				}
 			}
-		}
-		
-		for(int id: defenders) {
-			try {
-				Log.log("Itterating Defender: ID" + id);
-				defend(gameMap.getShip(gameMap.getMyPlayerId(), id));
-			}catch(NullPointerException npe) {
-				Log.log("Ship ID" + id + " is dead");
+			
+			for(int id: attackers) {
+				try {
+					Log.log("Itterating Attacker: ID" + id);
+					attack(gameMap.getShip(gameMap.getMyPlayerId(), id));
+				}catch(NullPointerException npe) {
+					Log.log("Ship ID" + id + " is dead");
+				}
+			}
+			
+			for(int id: defenders) {
+				try {
+					Log.log("Itterating Defender: ID" + id);
+					defend(gameMap.getShip(gameMap.getMyPlayerId(), id));
+				}catch(NullPointerException npe) {
+					Log.log("Ship ID" + id + " is dead");
+				}
 			}
 		}
 	}
@@ -171,7 +184,7 @@ public class MyBot {
 		}
 	}
 
-	public static void worker(Ship ship) {
+	public static void worker(Ship ship, boolean group) {
 		// Planet the ship will try to travel to
 		Planet targetPlanet = null;
 
@@ -192,12 +205,22 @@ public class MyBot {
 
 		// Set targetPlanet based off K Nearest Neighbors
 		for (Entry<Double, Planet> data : finalPlanetData) {
-			Planet tempPlanet = data.getValue();
-			if (tempPlanet.getDockedShips().size() <= tempPlanet.getDockingSpots() / 4 || !tempPlanet.isOwned()
-					|| tempPlanet.getDockedShips().size() <= tempPlanet.getDockingSpots() / 2 || !tempPlanet.isFull()) {
-				targetPlanet = data.getValue();
-				break;
+			if(group) {
+				Planet tempPlanet = data.getValue();
+				if (!tempPlanet.isOwned() || tempPlanet.getDockedShips().size() <= tempPlanet.getDockingSpots() / 4
+						|| tempPlanet.getDockedShips().size() <= tempPlanet.getDockingSpots() / 2 || !tempPlanet.isFull()) {
+					targetPlanet = data.getValue();
+					break;
+				}
+			}else {
+				Planet tempPlanet = data.getValue();
+				if (tempPlanet.getDockedShips().size() <= tempPlanet.getDockingSpots() / 4 || !tempPlanet.isOwned()
+						|| tempPlanet.getDockedShips().size() <= tempPlanet.getDockingSpots() / 2 || !tempPlanet.isFull()) {
+					targetPlanet = data.getValue();
+					break;
+				}
 			}
+
 		}
 
 		// When all planets are occupied and filled, start attack!
@@ -223,10 +246,10 @@ public class MyBot {
 				// ATTACK
 				Log.log("Scooting");
 				Ship targetShip = gameMap.getShip(targetPlanet.getOwner(), targetPlanet.getDockedShips().get(0));
-				final ThrustMove scoot = Astar.navigate(ship, targetShip, gameMap);
-//				final ThrustMove scoot = Navigation.navigateShipTowardsTarget(gameMap, ship,
-//						new Position(targetShip.getXPos(), targetShip.getYPos()), Constants.MAX_SPEED, true,
-//						Constants.MAX_NAVIGATION_CORRECTIONS, Math.PI / 180.0);
+//				final ThrustMove scoot = Astar.navigate(ship, targetShip, gameMap);
+				final ThrustMove scoot = Navigation.navigateShipTowardsTarget(gameMap, ship,
+						new Position(targetShip.getXPos(), targetShip.getYPos()), Constants.MAX_SPEED, true,
+						Constants.MAX_NAVIGATION_CORRECTIONS, Math.PI / 180.0);
 				if (scoot != null) {
 					moveList.add(scoot);
 				}

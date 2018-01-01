@@ -1,4 +1,4 @@
 javac MyBot.java
-halite -d "240 160" "java MyBot" "java Jabari"
+halite -d "336 224" "java MyBot" "java MyBot"
 
 pause
